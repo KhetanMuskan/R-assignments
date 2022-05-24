@@ -1,0 +1,555 @@
+Are the distributions the same?
+Table 1 contains the distribution of students across two faculties and levels of degrees. The table
+contains the number of students successfully completing a degree in the specified faculty. Does a
+statistically significant dierence exist between the faculties?
+Bachelor Masters Doctorate
+Engineering 360 141 14
+Science 616 309 32
+Table 1: Distribution of degrees awarded
+
+(i) Using R code, load the above data within an appropriate data structure(s). Include labels in your
+data structure(s). Include brief descriptions regarding the key parts of your code as comments
+within your R code.
+(ii) Using R, produce what you believe is the most useful visualisation that shows how the distribu-
+tions of faculty and degrees vary. Make the visualisation worthy of inclusion in a report. Briefly
+describe any key observations seen in the visualisation and make a prediction whether a statistically
+significant dierence exists.
+(iii) Perform a hypothesis test in order to determine whether a statistically significant dierence exists
+between the distributions. You are free to use the simplest method available, as used in lectures or
+tutorials. But make sure you include the following:
+ The Null and Alternative Hypotheses used
+ Any assumptions, or important details / parameters used
+ Declare the result of the hypothesis test
+ What does the hypothesis test result mean with respect to the distributions
+(iv) Repeat (iii) in its entirety, except for the following: develop your own code from scratch, hence
+make use of the R replicate() function and other basic functions as used in lectures or tutorials.
+(v) Finally, compare and contrast the results from (iii) and (iv) and briefly comment on what you found.
+
+
+#Question1.
+# ans(i)
+# Load Data provided in the question
+# creating an array of storing level of degrees
+Degree <- rep(c("Bachelor","Masters","Doctorate"), 
+              times = c(976,450,46))# showing total count of each level in both the faculties
+
+# creating an array of faculty storing according to level of degrees
+faculty <- c(rep("Engineering",360),rep("Science",616), #presenting count of Bachelor
+             rep("Engineering",141), rep("Science",309), # count of masters
+             rep("Engineering",14), rep("Science", 32)) # count of doctorate
+
+# create bivariate table using the labels above
+dataframe <- data.frame(faculty,Degree)
+data <- table(dataframe) #converting to numeric data
+
+
+#ans (ii)
+# visualization of distribution of whole data using barplot
+barplot(data,
+        main = "Distribution of faculty and level of degrees", #main headline
+        xlab = "level of degrees",  # writing xlabel
+        ylab = "Faculty",           # writing ylabel
+        ylim = c(100,1000),         # setting the y-axis limit
+        col = c(rgb(0.8,0.1,0.1,0.6),"#69b3a2"))  # colour for better visualization
+
+# legend used explaining the colors in the bars
+legend("topright",    # position of the legend in the plot
+       c("Science","Engineering"), #labels used
+       fill = c("#69b3a2", rgb(0.8,0.1,0.1,0.6))) # color same as the bars
+
+# From the barplot used, it has showed that the distribution of Science faculty
+# is more at all the three levels of degrees, 
+# Or, distribution of students is more in science faculty.
+# However, from the visualization there is no significant difference of the 
+# distribution of both the faculties across doctorate level while at the other
+# two levels there seems to be a significant difference.
+
+# ans (iii)
+#To confirm the statistical significant difference, I will do chi-sq test or prop.test in R.
+#Null hypothesis = no difference between distribution of eng. and science faculties 
+#across the chosen level of degree
+#Alternative Hypothesis = there is statistical significant difference 
+#Assumptions: if p<0.05, accept the null hypthesis else reject
+#data is normally distributed
+
+#First, I will check overall distribution of both the faculties:
+print(chisq.test(data))
+#p-value = 0.099 > 0.05
+#thus, there is no statistical significant difference between the distribution of faculties
+
+#Now, I will check distribution of faculties across each degree level
+#check  proportion of both the faculties across bachelor level
+prop.test(c(360,616),c(sum(dataframe$facult == "Engineering"),sum(dataframe$faculty=="Science")))
+#ans= p-value = 0.037
+#p<0.05,thus, reject the null hypothesis
+#thus, there is statistical significant difference between the distribution of 
+#both the faculties across Bachelor level
+
+#check  proportion of both the faculties across masters level
+prop.test(c(141,309),c(sum(dataframe$facult == "Engineering"),sum(dataframe$faculty=="Science")))
+#ans = p-value = 0.06
+#p>0.05, thus fail to reject the null hypothesis
+#thus, there is no statistical significant difference between the distribution
+#of both the faculties across Masters level.
+
+#check  proportion of both the faculties across doctorate level
+prop.test(c(14,32),c(sum(dataframe$facult == "Engineering"),sum(dataframe$faculty=="Science")))
+#ans = p-value = 0.62
+#p>0.05, thus fail to reject the null hypothesis
+#thus, there is no statistical significant difference between the distribution
+#of both the faculties across Doctorate level.
+
+
+#ans (iv)
+# formula used: z = pA - pB/sqrt((p*q/nA)+(p*q/nB))
+# pA: the proportion observed in group A with size nA, nA = total size of Engineering
+# pB: the proportion observed in group B with size nB, nB = total size of Science
+# p and q: the overall proportions
+# In the problem given:
+nA = 515
+nB = 957
+## calculating the proportion for Bachelor
+pA = 360/515
+pB = 616/957
+p  =(360+616)/(515+957)
+q  = 1-p
+#put the initial formula
+z = (pA - pB)/sqrt((p*q/nA)+(p*q/nB))
+#cal z = 2.9
+#The z-score associated with a 5% alpha level / 2 at 95% CI is 1.96.
+#our calculated z>1.96, reject the null hypothesis
+
+## calculating the proportion for Masters
+pA = 141/515
+pB = 309/957
+p  =(141+309)/(515+957)
+q  = 1-p
+#put the initial formula
+z = (pA - pB)/sqrt((p*q/nA)+(p*q/nB))
+#cal z = -1.95
+#The z-score associated with a 5% alpha level / 2 at 95% CI is 1.96.
+#our calculated z<1.96, fail to reject the null hypothesis
+
+## calculating the proportion for Doctorate
+pA = 14/515
+pB = 32/957
+p  =(14+32)/(515+957)
+q  = 1-p
+#put the initial formula
+z = (pA - pB)/sqrt((p*q/nA)+(p*q/nB))
+#cal z = -0.65
+#The z-score associated with a 5% alpha level / 2 at 95% CI is 1.96.
+#our calculated z<1.96, fail to reject the null hypothesis
+
+##Another way of finding out the difference in the distribution
+#Create Expected dataframe for chi-sq test
+exp.data <- data #store the structure of initial observed data into exp.data
+prop.bac = (data[1,1]+data[2,1])/length(dataframe$faculty) #proportion of bachelor
+prop.doc = (data[1,2]+data[2,2])/length(dataframe$faculty) #proportion of Doctorate
+prop.mas = (data[1,3]+data[2,3])/length(dataframe$faculty) #proportion of Master
+
+chisq = replicate(1000,
+                  {
+                    exp.data[1] <-prop.bac*sum(dataframe$faculty == "Engineering") #expected value = prop*sum of each faculty
+                    exp.data[2] <-prop.bac*sum(dataframe$faculty == "Science")
+                    exp.data[3] <-prop.doc*sum(dataframe$faculty == "Engineering")
+                    exp.data[4] <-prop.doc*sum(dataframe$faculty == "Science")
+                    exp.data[5] <-prop.mas*sum(dataframe$faculty == "Engineering")
+                    exp.data[6] <-prop.mas*sum(dataframe$faculty == "Science")
+                    chisq.test(exp.data, simulate.p.value = TRUE)$p.value #store p-value
+                    
+                  })
+#By using this approach we got p-value >0.05
+#thus, there is no statistical significant difference between the distribution of both faculties
+
+
+#ans (v)
+#comparing ans(iii) & ans (iv)
+#By chi sq.test in both cases, gave us non-significant result
+#thus, there is no significant distribution difference between faculties
+#However,
+#two-proportion z-test by using the function prop.test gave us the statistical 
+# significant difference across Bachelor only.
+#Also, when I calculated z-test using the formula, received the same result.
+
+
+###############################################################################################################################
+
+Is there a statistically significant dierence?
+The provided dataset, contained in the file called \question2_dataset.csv", reports on the perfor-
+mance of two new drugs. The dataset contains two columns labeled Val and Grp. Val is a measure
+of the drug's performance, assume performance / eectiveness is proportional to the magnitude of
+Val. Consider Grp to simply state the particular drug trialled.
+(i) Produce a single but useful visualisation of the dataset and briefly interpret what you see. Make
+the visualisation worthy of a report. Briefly state why you chose that visualisation.
+(ii) Perform a hypothesis test using the most appropriate statistical method. Note that you are free to
+use a single line of code, as used in lectures or tutorials. Make sure you clearly include the following:
+ Given what you saw in (i), state how you will compare the drugs and why
+ The Null and Alternative Hypotheses used
+ Any assumptions, or important details / parameters used
+ Declare the results and interpretation of the results of the hypothesis test
+(iii) Repeat (ii) in entirety, developing R code from scratch, but using a permutation test approach, as
+used in lectures or tutorials.
+(iv) Briefly compare and contrast the results of (ii) and (iii).
+
+#Question 2
+# ans(i)
+#importing local csv into data variable
+data2 <- read.csv(file.choose()) #choose file from the stored location in my system
+
+#visualization of imported data
+#install the required libraries for better visualization of the data
+install.packages("plyr")
+install.packages("ggplot2")
+
+library(plyr)    
+library(ggplot2) 
+
+str(data2)
+
+#change the categorical data into factor
+#in our data, Grp variable is the categorical data
+
+data2$Grp <- as.factor(data2$Grp)
+
+#Now that my categorical variables are factors, I need to properly label them. 
+#In my Grp variable, a = drugA and b=drugB, 
+#I am using the factor() function. Within that function, 
+#I am telling R which variable to change in my data, 
+#what the levels currently are, and how I want to label those levels.
+data2$Grp <- factor(data2$Grp,
+                    levels=c("a","b"),
+                    labels=c("GrpA", "GrpB"))
+#check again the structure of data
+str(data2)
+
+#I am choosing boxplot visualization
+#to know the median difference between both the drug's performance
+#also simultaneously I can visualize the spread between both the drugs
+#Any outliers, if exist.
+#Draw plot
+Effplot = ggplot(data2, aes(x = Grp, y = Val, color = Grp)) + geom_boxplot() +
+  labs(title = "Effectiveness as per drug")
+Effplot 
+
+
+#ans(ii)
+#from visualization it seems like median of GrpB > median of GrpA
+#there is more spread in the GrpA's data compared to GrpB's data
+#there are two outliers in GrpB's performance sample or two data points outside the 1.5*IQR
+#thus, sampple of GrpB does not follow normality, to prove further;
+shapiro.test(data$Val[data$Grp == "GrpB"]) #p<0.05, 
+#the distribution of data is significantly different from normal distribution.
+
+#Since there is testing of two different drugs independently.
+#from (i), it seems mean of GrpA is approx 100
+#and mean of GrpB is approx 102
+var(data$Val[data$Grp == "GrpA"])
+#34
+var(data$Val[data$Grp == "GrpB"])
+#7.2
+#thus, both the samples have different variance.
+
+#I am choosing to perform; Mann Whitney-U test; non parametric test
+#Assumptions:#small sample size
+#each drug sampled independently
+#samples are not normally distributed in each group
+
+#Null hypothesis: there is no significant difference between both drug's performance distribution
+#Alternative hypothesis: difference in the means between GrpA and GrpB is not equal to zero
+#if the cal p-value < 0.05, then reject the null hypothesis
+#if the cal p-value > 0.05, then failed to reject the null hypothesis
+
+cal_pval <- wilcox.test(data2$Val ~ data2$Grp,
+                        data = data2,
+                        exact = FALSE)
+cal_pval
+#cal_pval = 0.095
+# cal p-value > 0.05
+# thus failed to reject the null hypothesis;
+# there is no statistical significant difference between both the samples performance means 
+# mean GrpA = 100.31
+# mean GrpB = 102.0
+
+#ans (iii)
+#Permutation test
+# calculate the difference in drug means
+m1 = mean(data2$Val[data2$Grp == "GrpA"]) # Original mean for grpA drug
+m2 = mean(data2$Val[data2$Grp == "GrpB"]) # Original mean for grpbB drug
+# let's calculate the absolute diff in the means
+test.stat1 <- abs(m1 - m2)
+test.stat1
+
+# calculate the difference in drug medians
+med1 = median(data2$Val[data2$Grp == "GrpA"]) # Original median for grpA drug
+med2 = median(data2$Val[data2$Grp == "GrpB"]) # Original median for grpB drug
+# let's calculate the absolute diff in the medians
+test.stat2 <- abs(med1 - med2)  
+test.stat2
+# Permutation Testing by shuffling the labels
+# for reproducability of results
+set.seed(1900)  
+
+# the number of observations to sample
+n <- length(data2$Grp)  
+
+# the number of permutation samples to take
+P <- 1000 
+
+# the variable we will resample from 
+variable <- data2$Val  
+
+# initialize a matrix to store the permutation data
+PermSamples <- matrix(0, nrow = n, ncol = P)
+
+# each column is a permutation sample of the data
+# now, get those permutation samples, using a replicate function
+
+PermSamples <- replicate(1000,
+                         {sample(variable, 
+                                 size = n, 
+                         )
+                           
+                         })
+
+# check permutation for first 5 elements
+PermSamples[,1:5]
+
+# initialize vectors to store all of the test-stats
+Perm.test.stat1 <- Perm.test.stat2 <- rep(0, P)
+
+# loop through, and calculate the test-stats again
+for (i in 1:P)
+{
+  # calculate the perm-test-stat1 and save it
+  Perm.test.stat1[i] <- abs(mean(PermSamples[data2$Grp == "GrpA",i]) - 
+                              mean(PermSamples[data2$Grp == "GrpB",i]))
+  
+  # calculate the perm-test-stat2 and save it
+  Perm.test.stat2[i] <- abs(median(PermSamples[data2$Grp == "GrpA",i]) - 
+                              median(PermSamples[data2$Grp == "GrpB",i]))
+}
+
+# before going too far with this, 
+# let's remind ourselves of the initially calculated Test stats
+test.stat1; test.stat2
+
+# and, take a look at the first 5 
+# permutation-TEST STATS for 1 and 2
+round(Perm.test.stat1[1:5], 1)
+round(Perm.test.stat2[1:5], 1)
+
+# and, let's calculate the permutation p-value
+# notice how we can ask R a true/false question
+(Perm.test.stat1 >= test.stat1)[1:5]
+
+# and if we ask for the mean of all of those,
+# it treats 0 = FALSE, 1 = TRUE
+mean((Perm.test.stat1 >= test.stat1)[1:5])
+
+# Calculate the p-value, for all P = 1000
+mean(Perm.test.stat1 >= test.stat1)
+# p-value = 0.066
+#Thus, fail to reject the null hypothesis
+#p-value> 0.05, thus there is no statistical significant difference between the drug's performance
+
+
+# and, let's calculate the p-value for 
+# option 2 of the test statistic (abs diff in medians)
+mean(Perm.test.stat2 >= test.stat2)
+# p -value = 0.04
+#Thus, reject the null hypothesis
+#p-value< 0.05, thus there is statistical significant difference between the drug's performance median values
+
+
+#ans (iv)
+#comparing ans from (ii) & (iii)
+#the Mann Whitney-U test gave the not significant p-value i.e. there is no statistical significant difference the both sample's mean value
+#permutation test also gave non- significant p-value i.e. there is no statistical significant difference between the sample's mean
+#However, using permutation test for median comparison, there is statistical significant difference between the median values of both the samples
+#Both the tests gave same results regarding the significance of the distribution of samples
+#there is no statistical significant difference between both the samples distribution
+
+#######################################################################################################################################
+Predicting demand
+A particular help desk, always has seventeen operators on duty. On average only fourteen operators
+are simultaneously busy helping customers.
+(i) What is the probability that all operators will be simultaneously busy? Briefly explain the approach
+used.
+(ii) What is the probability that one or more callers will have to wait for an operator to become
+available? Briefly explain the approach used.
+(iii) Draw a nicely presented plot showing operator demand for zero to twenty-five operators. Make this
+plot appropriate for a report to management.
+
+Estimating probability
+Imagine an exam that consists of seven multiple choice questions and each question has five possible
+answers, but only one is correct. Also imagine that answers to the questions are to be randomly
+selected.
+(iv) Write R code to determine the theoretic probability of getting five or more questions correct by
+luck. Make sure you briefly include code comment(s) stating the logic of how you calculated the answer.
+
+#Question 3
+#Predicting demand
+q  = 17 #number of operators on duty
+bn = 14 #average number of operators who are simultaneously busy 
+##ans(i)
+#mean of the  operators simultaneously busy
+lambda = 14
+#Using poisson distribution function in R, since it's a time interval problem
+#to know the probability of all the operators being busy simultaneously
+PROB = dpois(q,lambda) #function used to know the exact probability
+PROB
+#thus, probability of all the operators being simultaneous busy is = 0.071
+
+##ans(ii)
+#callers have to wait when there will be no operators available
+#since probability of no operator available will be 0.071
+#while probability of an operator be available
+pr_op = dpois(1,lambda)
+#1.16e-05
+#this seems to be queuing problem
+#but there is no information provided related to the callers waiting time or arrival time
+#INCOMPLETE INFORMATION
+
+##ans(iii)
+#distribution of operator demand from zero to 25 operators
+#expected number of operators = lambda = 3
+# variance = lambda = 3
+
+#loading libraries for plot visualization
+library(ggplot2)
+install.packages("dplyr")
+library(dplyr)
+options(scipen = 999, digits = 2) # significant digits
+
+demand  <- 0:25 #range of operators demand
+density <- dpois(x = demand, lambda) #create prob density according to each demand
+prob    <- ppois(q = demand, lambda, lower.tail = TRUE)#probability distribution
+df      <- data.frame(demand, density, prob) #creating a dataframe for plot
+
+ggplot(df, aes(x = factor(demand), y = density)) +
+  geom_col() + # to draw bars presenting density
+  ylim(0,1) +
+  geom_text(
+    aes(label = round(density,2), y = density + 0.01),
+    position = position_dodge(0.9), #geom_text is used to write text over the bars, 
+    size = 2,                       #controlling by two digits after decimal
+    vjust = 0 
+  ) +
+  labs(title = "PMF and CDF of Poisson Distribution", #PMF = probability mass function
+       x = "demand (x)",                              #CDF = Cumulative Distribution Function
+       y = "Density") +
+  geom_line(data = df, aes(x = demand, y = prob))#cumulative probability distribution shown by line plot
+
+##ans(iv)
+#Estimating probability
+#There are seven questions in an exam
+#Thus, total number of trials be 7
+trialcount = 7 #n
+#each question has five options, but having only one choice correct
+#probability of choosing right option
+corrprob = 1/5 #p
+wrongprob = 1 - corrprob #q
+#probability of having correct ans of five or more questions randomly
+
+#design of problem: P(X=>5) = (nCr)*p^r*q^n-r, where r = 5, 6, 7
+#Since the problem didn't mention whether to use function or not,
+#I am approaching this question using binomial distribution functions in R
+
+#first find out the probability of X=5 using dbinom
+prob1 = dbinom(5,trialcount,corrprob)
+prob1
+#prob1 = 0.0043
+#then, find out the cumulative probability of X>5 using pbinom function
+prob2 = pbinom(5, trialcount,corrprob, lower.tail = FALSE)
+prob2
+# 0.00037
+#thus, probability of having 5 or more than 5 questions correct randomly is
+finalprob = prob1+prob2
+finalprob
+#probability of having 5 or more answers correct (X>=5) is 0.0047
+
+#cross-check the answer using formula;
+# using required libraries
+install.packages("combinat")
+library(combinat)
+checkprob = nCm(7,5)*0.2^5*0.8^2 + nCm(7,6)*0.2^6*0.8^1 + nCm(7,7)*0.2^7*0.8^0
+checkprob
+#0.0047
+
+####################################################################################################################
+Interval estimation
+Using a 90% confidence interval approach, what is the fewest and largest number of heads expected
+when a biased coin (75% probably of heads) is tossed 50 times?
+(i) Using a simulation method as shown in the lectures and tutorials of this subject, generate a distri-
+bution suitable for determining a confidence interval; use code you developed from scratch3. Briefly
+explain the key steps involved as simple comments within your source code.
+(ii) For the distribution obtained above in (i):-
+ Determine the mean number of heads
+ Determine the confidence interval
+(iii) Produce an appropriate plot showing the distribution obtained in (i) and include the details obtained
+in (ii). Make the plot worthy of a report.
+
+##Question 4
+#probability of getting head by tossing a biased coin
+p = 0.75 #75 heads in 100 tosses
+
+#min and max value of heads corresponding to 90% confidence interval
+prop.test(75,100,conf.level = 0.90)
+#fewest number of heads = 0.67 or 33.5 heads in 50 tosses
+#largest number of heads = 0.82 or 41 heads in 50 tosses
+
+#ans(i)
+#creating distribution for number of heads using simulation method
+#Firstly, I want to create random numbers following the conditions described above
+#Since tossing a coin is a binomial distribution, thus I will create random numbers using rbinom
+
+n = 50;#number of toss
+p = 0.75 #probability of heads
+
+
+nheads = replicate(1000, 
+                   {
+                     U = runif(n, min = 0.67, max = 0.82);#uniform distribution
+                     X = sum(U<p) #average of number of heads in uniform distribution
+                   })
+
+
+##ans(ii)
+mean(nheads) #mean of new distribution
+sd(nheads) #std dev 
+std_error = sd(nheads)/sqrt(1000) #std error
+
+alpha = 0.05 #significant level
+degrees_of_freedom = 1000 - 1 
+t_score = qt(p=alpha/2, df=degrees_of_freedom,lower.tail=F)
+print(t_score)
+
+marg_error <- t_score*std_error
+# Calculate the lower bound 
+lower_bound <- mean(nheads) - marg_error
+#26.6
+
+# Calculate the upper bound
+upper_bound <- mean(nheads) + marg_error
+#27.03
+#mean = 26.82; IQR = 26.6 - 27.03
+
+#Compute confidence Interval
+CI = quantile(nheads, c(0.025,0.975))
+CI
+
+
+##ans(iii)
+hist(nheads,prob=T, col = "light blue")
+abline(v = CI[1:1], col="red") #showing confidence Interval 
+abline(v= CI[1:2], col="red")
+
+#to show IQR, CI in the plot more precisely, I am using boxplot
+boxplot(nheads)
+
+#plot(1 : 1000, nheads, type = "l", lwd = 3, col = "blue", ylab = "ProportionofHeads",
+#xlab = "PermutationCount", cex.main = 1.25, cex.lab = 1.25, cex.axis = 1.25)
+
+
+
